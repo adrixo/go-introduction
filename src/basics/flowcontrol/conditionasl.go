@@ -27,7 +27,7 @@ func pow_else(x, n, lim float64) float64 {
 	} else {
 		fmt.Printf("%g >= %g\n", v, lim)
 	}
-	// can't use v here, though
+	// can"t use v here, though
 	return lim
 }
 
