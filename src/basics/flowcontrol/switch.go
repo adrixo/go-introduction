@@ -19,7 +19,7 @@ func main() {
 		fmt.Printf("%s.\n", os)
 	}
 
-	fmt.Println("When"s Saturday?")
+	fmt.Println("When's Saturday?")
 	today := time.Now().Weekday()
 	switch time.Saturday {
 	case today + 0:

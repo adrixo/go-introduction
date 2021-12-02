@@ -14,8 +14,8 @@ func fibonacci(n int, c chan int) {
 }
 
 func main() {
-	c := make(chan int, 10)
-	go fibonacci(cap(c), c)
+	c := make(chan int, 130)
+	go fibonacci(10, c)
 	for i := range c {
 		fmt.Println(i)
 	}

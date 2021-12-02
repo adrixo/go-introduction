@@ -17,10 +17,6 @@ var ml = map[string]Vertex{
 	},
 }
 
-type Vertex struct {
-	Lat, Long float64
-}
-
 var mlc = map[string]Vertex{
 	"Bell Labs": {40.68433, -74.39967},
 	"Google":    {37.42202, -122.08408},

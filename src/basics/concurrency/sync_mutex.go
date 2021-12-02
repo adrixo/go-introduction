@@ -20,6 +20,12 @@ func (c *SafeCounter) Inc(key string) {
 	c.mu.Unlock()
 }
 
+func (c *SafeCounter) Dec(key string) {
+	c.mu.Lock()
+	c.v[key]--
+	c.mu.Unlock()
+}
+
 // Value returns the current value of the counter for the given key.
 func (c *SafeCounter) Value(key string) int {
 	c.mu.Lock()
@@ -32,6 +38,7 @@ func main() {
 	c := SafeCounter{v: make(map[string]int)}
 	for i := 0; i < 1000; i++ {
 		go c.Inc("somekey")
+		go c.Dec("somekey")
 	}
 
 	time.Sleep(time.Second)

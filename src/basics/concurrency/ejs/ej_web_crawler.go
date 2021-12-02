@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"sync"
+	"time"
 )
 
 type Fetcher interface {
@@ -12,27 +15,80 @@ type Fetcher interface {
 
 // Crawl uses fetcher to recursively crawl
 // pages starting with url, to a maximum of depth.
-func Crawl(url string, depth int, fetcher Fetcher) {
+func Crawl(url string, depth int, fetcher Fetcher, cp *CrawledPlaces, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	fmt.Println("\nCrawling ", url)
 	// TODO: Fetch URLs in parallel.
 	// TODO: Don't fetch the same URL twice.
 	// This implementation doesn't do either:
 	if depth <= 0 {
 		return
 	}
-	body, urls, err := fetcher.Fetch(url)
-	if err != nil {
-		fmt.Println(err)
-		return
+
+	if cp.CrawlPlace(url) {
+		body, urls, err := fetcher.Fetch(url)
+		if err != nil {
+			fmt.Println(err)
+			cp.SetBody(url, err.Error())
+
+			return
+		}
+
+		fmt.Printf("found: %s %q\n", url, body)
+		cp.SetBody(url, body)
+
+		for _, u := range urls {
+			wg.Add(1)
+			go Crawl(u, depth-1, fetcher, cp, wg)
+		}
 	}
-	fmt.Printf("found: %s %q\n", url, body)
-	for _, u := range urls {
-		Crawl(u, depth-1, fetcher)
-	}
+
 	return
 }
 
 func main() {
-	Crawl("https://golang.org/", 4, fetcher)
+	crawledMap := make(map[string]string)
+	cp := &CrawledPlaces{crawled: crawledMap}
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	Crawl("https://golang.org/", 4, fetcher, cp, &wg)
+	wg.Wait()
+	fmt.Println("Completed!")
+
+	// time.Sleep(1000 * time.Millisecond)
+	fmt.Println(len(cp.crawled), ": ", cp.crawled)
+}
+
+type CrawledPlaces struct {
+	mu      sync.Mutex
+	crawled map[string]string
+}
+
+func (cp *CrawledPlaces) CrawlPlace(place string) (canBeCrawled bool) {
+	cp.mu.Lock()
+	canBeCrawled = false
+
+	if _, exists := cp.crawled[place]; !exists {
+		fmt.Println("\tCan be crawled: ", place)
+		cp.crawled[place] = ""
+		canBeCrawled = true
+	} else {
+		fmt.Println("\tWas crawled before: ", place)
+	}
+	cp.mu.Unlock()
+
+	return canBeCrawled
+}
+
+func (cp *CrawledPlaces) SetBody(place string, body string) {
+	cp.mu.Lock()
+	cp.crawled[place] = body
+	cp.mu.Unlock()
+
+	return
 }
 
 // fakeFetcher is Fetcher that returns canned results.
@@ -44,6 +100,9 @@ type fakeResult struct {
 }
 
 func (f fakeFetcher) Fetch(url string) (string, []string, error) {
+	random := rand.Intn(2000-1500) + 1500
+	time.Sleep(time.Duration(random) * time.Millisecond)
+
 	if res, ok := f[url]; ok {
 		return res.body, res.urls, nil
 	}

@@ -18,7 +18,7 @@ func (e *MyError) Error() string {
 func run() error {
 	return &MyError{
 		time.Now(),
-		"it didn"t work",
+		"it didn't work",
 	}
 }
 

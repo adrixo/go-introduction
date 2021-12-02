@@ -9,7 +9,7 @@ func do(i interface{}) {
 	case string:
 		fmt.Printf("%q is %v bytes long\n", v, len(v))
 	default:
-		fmt.Printf("I don"t know about type %T!\n", v)
+		fmt.Printf("I don't know about type %T!\n", v)
 	}
 }
 
