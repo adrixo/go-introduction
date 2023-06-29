@@ -3,11 +3,14 @@ package main
 import (
 	"fmt"
 	"sort"
+	"strconv"
 )
 
 func main() {
-	l := []int{9, 2, 6, 4, 22, 6, 70, 8, 9}
+	l := getSlice()
+
 	l = channelSort(l)
+
 	fmt.Println(l)
 }
 
@@ -20,7 +23,7 @@ func channelSort(l []int) []int {
 	sorter_c := make(chan []int)
 	go sortSlice(cutter_c, sorter_c)
 
-	// 3. Get all slices into var
+	// 3. Get all slices into var, this works as a wait for all
 	subSlices := make([][]int, 4)
 	for value := range sorter_c {
 		fmt.Println("Getting one", value)
@@ -33,6 +36,26 @@ func channelSort(l []int) []int {
 	}
 
 	return sortedSlice
+}
+
+func getSlice() []int {
+	l := make([]int, 0, 0)
+	for i := 0; ; i++ {
+		var input string
+		fmt.Printf("Enter number %d (x to exit): ", i+1)
+		fmt.Scan(&input)
+
+		if input == "x" || input == "X" {
+			break
+		}
+
+		n, _ := strconv.Atoi(input)
+		l = append(l, n)
+
+		fmt.Println(l)
+		fmt.Println()
+	}
+	return l
 }
 
 func insert(a []int, index int, value int) []int {
